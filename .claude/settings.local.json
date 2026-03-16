@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm:*)",
+      "Bash(python:*)",
+      "Bash(curl:*)",
+      "Bash(taskkill:*)",
+      "Bash(netstat:*)",
+      "Bash(cmd /c \"taskkill /PID 21860 /F & taskkill /PID 23016 /F & taskkill /PID 22556 /F\" 2>&1)",
+      "Bash(cmd /c \"for /f \\\\\"tokens=5\\\\\" %a in \\('netstat -ano ^| findstr :8000 ^| findstr LISTENING'\\) do taskkill /PID %a /F\" 2>&1)",
+      "Bash(ls:*)"
+    ]
+  }
+}

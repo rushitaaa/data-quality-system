@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+output/
+data/
+*.csv
+*.json
+*.xml
+*.yaml
+*.yml
+.git/
