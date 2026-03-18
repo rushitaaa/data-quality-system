@@ -1,263 +1,217 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Data Quality Improvement System</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Data Quality Improvement System</title>
+<style>
+:root[data-theme="dark"] {
+  --bg:#0a0f1e; --surface:#111827; --surface2:#1a2236; --border:#1f2f4a;
+  --accent:#6366f1; --accent2:#818cf8; --green:#10b981; --yellow:#f59e0b;
+  --red:#ef4444; --text:#e2e8f0; --muted:#64748b; --card:#0d1424;
+  --header-grad: linear-gradient(135deg,#1e3a8a 0%,#4c1d95 100%);
+}
+:root[data-theme="light"] {
+  --bg:#f1f5f9; --surface:#ffffff; --surface2:#f8fafc; --border:#e2e8f0;
+  --accent:#4f46e5; --accent2:#6366f1; --green:#059669; --yellow:#d97706;
+  --red:#dc2626; --text:#0f172a; --muted:#94a3b8; --card:#f8fafc;
+  --header-grad: linear-gradient(135deg,#3b82f6 0%,#8b5cf6 100%);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s}
 
-    :root {
-      --bg: #0a0f1e;
-      --surface: #111827;
-      --surface2: #1a2236;
-      --border: #1f2f4a;
-      --accent: #6366f1;
-      --accent2: #818cf8;
-      --green: #10b981;
-      --yellow: #f59e0b;
-      --red: #ef4444;
-      --text: #e2e8f0;
-      --muted: #64748b;
-    }
+/* HEADER */
+header{background:var(--header-grad);padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.header-left{display:flex;align-items:center;gap:1rem}
+.logo{font-size:2rem}
+header h1{font-size:1.5rem;font-weight:700}
+header p{margin-top:.2rem;opacity:.8;font-size:.85rem}
+.theme-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:8px;padding:.4rem .9rem;cursor:pointer;font-size:.85rem;transition:background .2s}
+.theme-btn:hover{background:rgba(255,255,255,.25)}
 
-    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+/* TOAST */
+#toast-container{position:fixed;top:1.2rem;right:1.2rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem}
+.toast{padding:.75rem 1.25rem;border-radius:10px;font-size:.87rem;font-weight:600;color:#fff;animation:slideIn .3s ease;max-width:320px;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.toast.success{background:#065f46}
+.toast.error  {background:#7f1d1d}
+.toast.info   {background:#1e3a8a}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
 
-    /* ── Header ── */
-    header {
-      background: linear-gradient(135deg, #1e3a8a 0%, #4c1d95 100%);
-      padding: 2rem 2rem 1.5rem;
-      display: flex; align-items: center; gap: 1.5rem;
-    }
-    .logo { font-size: 2rem; }
-    header h1 { font-size: 1.6rem; font-weight: 700; }
-    header p  { margin-top: 0.3rem; opacity: 0.75; font-size: 0.9rem; }
+/* LAYOUT */
+.container{max-width:1100px;margin:2rem auto;padding:0 1.5rem}
 
-    /* ── Layout ── */
-    .container { max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem; }
+/* STEPS */
+.steps{display:flex;align-items:center;background:var(--surface);border-radius:12px;padding:1rem 1.5rem;margin-bottom:2rem;overflow-x:auto;gap:0}
+.step{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+.step-dot{width:28px;height:28px;border-radius:50%;background:var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;transition:all .3s}
+.step-dot.active{background:var(--accent);color:#fff;box-shadow:0 0 12px #6366f180}
+.step-dot.done{background:var(--green);color:#fff}
+.step-label{font-size:.75rem;color:var(--muted);white-space:nowrap;transition:color .3s}
+.step-label.active{color:var(--accent2)}
+.step-label.done{color:var(--green)}
+.step-arrow{color:var(--border);margin:0 .6rem;flex-shrink:0}
 
-    /* ── Pipeline steps ── */
-    .steps {
-      display: flex; align-items: center; gap: 0; margin-bottom: 2rem;
-      background: var(--surface); border-radius: 12px; padding: 1rem 1.5rem;
-      overflow-x: auto;
-    }
-    .step { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
-    .step-dot {
-      width: 28px; height: 28px; border-radius: 50%;
-      background: var(--border); color: var(--muted);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
-      transition: all 0.3s;
-    }
-    .step-dot.active  { background: var(--accent); color: #fff; box-shadow: 0 0 12px #6366f180; }
-    .step-dot.done    { background: var(--green);  color: #fff; }
-    .step-label { font-size: 0.78rem; color: var(--muted); white-space: nowrap; transition: color 0.3s; }
-    .step-label.active { color: var(--accent2); }
-    .step-label.done   { color: var(--green); }
-    .step-arrow { color: var(--border); margin: 0 0.75rem; font-size: 1rem; flex-shrink: 0; }
+/* UPLOAD */
+.upload-card{background:var(--surface);border:2px dashed var(--border);border-radius:14px;padding:2.5rem 2rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s}
+.upload-card:hover,.upload-card.drag-over{border-color:var(--accent);background:var(--surface2)}
+.upload-icon{font-size:2.5rem;margin-bottom:.75rem}
+.upload-card h2{font-size:1.1rem;margin-bottom:.4rem}
+.upload-card p{color:var(--muted);font-size:.85rem}
+#file-input{display:none}
+#chosen-label{margin-top:.6rem;font-size:.82rem;color:var(--accent2);min-height:1.1em}
+#multi-list{margin-top:.5rem;font-size:.78rem;color:var(--muted)}
 
-    /* ── Upload card ── */
-    .upload-card {
-      background: var(--surface);
-      border: 2px dashed var(--border);
-      border-radius: 14px; padding: 3rem 2rem;
-      text-align: center; cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
-    }
-    .upload-card:hover, .upload-card.drag-over {
-      border-color: var(--accent); background: #131d35;
-    }
-    .upload-icon { font-size: 3rem; margin-bottom: 1rem; }
-    .upload-card h2 { font-size: 1.2rem; margin-bottom: 0.5rem; }
-    .upload-card p  { color: var(--muted); font-size: 0.9rem; }
-    #file-input { display: none; }
-    #chosen-label { margin-top: 0.75rem; font-size: 0.85rem; color: var(--accent2); min-height: 1.2em; }
+/* OPTIONS PANEL */
+.options-toggle{display:flex;align-items:center;gap:.5rem;cursor:pointer;color:var(--accent2);font-size:.85rem;font-weight:600;margin-top:1.25rem;user-select:none}
+.options-toggle:hover{color:var(--accent)}
+.options-panel{display:none;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-top:.75rem}
+.options-panel.open{display:block}
+.opt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}
+.opt-group label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:.35rem;font-weight:600}
+.opt-group select,.opt-group input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:.45rem .7rem;color:var(--text);font-size:.85rem}
+.opt-group select:focus,.opt-group input:focus{outline:none;border-color:var(--accent)}
 
-    /* ── Buttons ── */
-    .btn {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      padding: 0.65rem 1.6rem; border: none; border-radius: 8px;
-      font-size: 0.95rem; font-weight: 600; cursor: pointer;
-      transition: all 0.2s; text-decoration: none;
-    }
-    .btn-primary { background: var(--accent); color: #fff; margin-top: 1.25rem; }
-    .btn-primary:hover:not(:disabled) { background: #4338ca; transform: translateY(-1px); }
-    .btn-primary:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
-    .btn-green   { background: var(--green);  color: #fff; }
-    .btn-green:hover { background: #059669; }
-    .btn-outline { background: transparent; border: 1.5px solid var(--accent); color: var(--accent2); }
-    .btn-outline:hover { background: #1a2236; }
-    .btn-sm { padding: 0.4rem 1rem; font-size: 0.82rem; }
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1.4rem;border:none;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none}
+.btn-primary{background:var(--accent);color:#fff;margin-top:1rem}
+.btn-primary:hover:not(:disabled){background:#4338ca;transform:translateY(-1px)}
+.btn-primary:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{filter:brightness(1.1)}
+.btn-outline{background:transparent;border:1.5px solid var(--accent);color:var(--accent2)}
+.btn-outline:hover{background:var(--surface2)}
+.btn-red{background:#7f1d1d;color:#fca5a5}
+.btn-red:hover{background:#991b1b}
 
-    /* ── Progress ── */
-    #progress { display: none; margin-top: 2rem; }
-    .progress-inner {
-      background: var(--surface); border-radius: 12px; padding: 2rem;
-      text-align: center;
-    }
-    .spinner {
-      width: 48px; height: 48px;
-      border: 4px solid var(--border); border-top-color: var(--accent);
-      border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .progress-text { color: var(--muted); }
+/* PROGRESS */
+#progress{display:none;margin-top:2rem}
+.progress-inner{background:var(--surface);border-radius:12px;padding:2rem;text-align:center}
+.progress-bar-wrap{background:var(--border);border-radius:8px;height:8px;margin:1rem auto;max-width:400px;overflow:hidden}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),#a78bfa);border-radius:8px;transition:width .4s ease;width:0%}
+.progress-text{color:var(--muted);font-size:.9rem;margin-top:.5rem}
 
-    /* ── Error ── */
-    #error-msg {
-      display: none; background: #1c0a0a; border: 1px solid #7f1d1d;
-      border-radius: 10px; padding: 1rem 1.25rem; margin-top: 1.5rem; color: #fca5a5;
-    }
+/* ERROR */
+#error-msg{display:none;background:#1c0a0a;border:1px solid #7f1d1d;border-radius:10px;padding:1rem 1.25rem;margin-top:1.5rem;color:#fca5a5}
 
-    /* ── Results ── */
-    #results { display: none; margin-top: 2rem; }
+/* RESULTS */
+#results{display:none;margin-top:2rem}
+.section{margin-bottom:2rem}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.section-title{font-size:1rem;font-weight:700;color:var(--accent2);display:flex;align-items:center;gap:.5rem}
+.section-title::before{content:'';display:inline-block;width:3px;height:1em;background:var(--accent);border-radius:2px}
 
-    .section { margin-bottom: 2rem; }
-    .section-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 1rem;
-    }
-    .section-title {
-      font-size: 1rem; font-weight: 700; color: var(--accent2);
-      display: flex; align-items: center; gap: 0.5rem;
-    }
-    .section-title::before {
-      content: ''; display: inline-block;
-      width: 3px; height: 1em; background: var(--accent); border-radius: 2px;
-    }
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1rem}
+.stat-card{background:var(--surface);border-radius:12px;padding:1.25rem;text-align:center;border:1px solid var(--border);transition:transform .2s}
+.stat-card:hover{transform:translateY(-2px)}
+.stat-value{font-size:2rem;font-weight:800;color:var(--accent2)}
+.stat-value.green{color:var(--green)}
+.stat-value.yellow{color:var(--yellow)}
+.stat-label{font-size:.75rem;color:var(--muted);margin-top:.25rem}
 
-    /* ── Stats grid ── */
-    .stats-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;
-    }
-    .stat-card {
-      background: var(--surface); border-radius: 12px; padding: 1.25rem;
-      text-align: center; border: 1px solid var(--border);
-      transition: transform 0.2s;
-    }
-    .stat-card:hover { transform: translateY(-2px); }
-    .stat-value { font-size: 2.2rem; font-weight: 800; color: var(--accent2); }
-    .stat-value.green  { color: var(--green); }
-    .stat-value.yellow { color: var(--yellow); }
-    .stat-value.red    { color: var(--red); }
-    .stat-label { font-size: 0.78rem; color: var(--muted); margin-top: 0.3rem; }
+/* CHART */
+.chart-wrap{background:var(--surface);border-radius:12px;padding:1.5rem;border:1px solid var(--border)}
+.chart-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.65rem}
+.chart-row:last-child{margin-bottom:0}
+.chart-label{width:160px;font-size:.78rem;color:var(--muted);text-align:right;flex-shrink:0}
+.chart-bar-bg{flex:1;background:var(--border);border-radius:4px;height:20px;overflow:hidden}
+.chart-bar-fill{height:100%;border-radius:4px;transition:width .8s ease;display:flex;align-items:center;padding-left:6px}
+.chart-bar-fill.fixed  {background:linear-gradient(90deg,#059669,#10b981)}
+.chart-bar-fill.flagged{background:linear-gradient(90deg,#b45309,#f59e0b)}
+.chart-count{font-size:.76rem;font-weight:700;color:#fff}
+.chart-num{width:32px;font-size:.78rem;color:var(--muted)}
 
-    /* ── Chart bar ── */
-    .chart-wrap {
-      background: var(--surface); border-radius: 12px; padding: 1.5rem;
-      border: 1px solid var(--border);
-    }
-    .chart-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.7rem; }
-    .chart-row:last-child { margin-bottom: 0; }
-    .chart-label { width: 160px; font-size: 0.8rem; color: var(--muted); text-align: right; flex-shrink: 0; }
-    .chart-bar-bg { flex: 1; background: var(--border); border-radius: 4px; height: 20px; overflow: hidden; }
-    .chart-bar-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; display: flex; align-items: center; padding-left: 6px; }
-    .chart-bar-fill.fixed   { background: linear-gradient(90deg, #059669, #10b981); }
-    .chart-bar-fill.flagged { background: linear-gradient(90deg, #b45309, #f59e0b); }
-    .chart-count { font-size: 0.78rem; font-weight: 700; color: #fff; }
-    .chart-num { width: 30px; font-size: 0.8rem; color: var(--muted); }
+/* TABS */
+.tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1rem}
+.tab{padding:.45rem 1.1rem;border-radius:8px;font-size:.82rem;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all .2s}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tab-content{display:none}
+.tab-content.active{display:block}
 
-    /* ── Tabs ── */
-    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
-    .tab {
-      padding: 0.5rem 1.2rem; border-radius: 8px; font-size: 0.85rem;
-      cursor: pointer; border: 1px solid var(--border); background: var(--surface);
-      color: var(--muted); transition: all 0.2s;
-    }
-    .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+/* COL TYPES */
+.col-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.6rem}
+.col-pill{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.5rem .85rem;display:flex;justify-content:space-between;align-items:center;gap:.5rem}
+.col-name{font-size:.82rem;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.type-select{background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:.72rem;padding:.15rem .3rem;cursor:pointer}
+.type-badge{font-size:.7rem;font-weight:700;padding:.15rem .55rem;border-radius:20px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.t-integer,.t-float {background:#1e3a5f;color:#60a5fa}
+.t-string          {background:#1e293b;color:#94a3b8}
+.t-email           {background:#1a3626;color:#34d399}
+.t-phone           {background:#2d1f3a;color:#c084fc}
+.t-date            {background:#2d2010;color:#fb923c}
+.t-boolean         {background:#1f2d1f;color:#86efac}
+.rerun-bar{margin-top:.75rem;display:none}
 
-    /* ── Column types ── */
-    .col-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.6rem;
-    }
-    .col-pill {
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 8px; padding: 0.5rem 0.85rem;
-      display: flex; justify-content: space-between; align-items: center;
-      font-size: 0.85rem;
-    }
-    .col-name { color: var(--text); font-weight: 500; }
-    .type-badge {
-      font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.6rem;
-      border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;
-    }
-    .type-integer, .type-float   { background: #1e3a5f; color: #60a5fa; }
-    .type-string                 { background: #1e293b; color: #94a3b8; }
-    .type-email                  { background: #1a3626; color: #34d399; }
-    .type-phone                  { background: #2d1f3a; color: #c084fc; }
-    .type-date                   { background: #2d2010; color: #fb923c; }
-    .type-boolean                { background: #1f2d1f; color: #86efac; }
+/* ISSUE FILTER + SEARCH */
+.issue-controls{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem}
+.filter-bar{display:flex;gap:.4rem;flex-wrap:wrap}
+.filter-btn{padding:.28rem .85rem;border-radius:20px;font-size:.76rem;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all .2s}
+.filter-btn.active{border-color:var(--accent);color:var(--accent2);background:var(--surface2)}
+.search-box{flex:1;min-width:140px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.38rem .75rem;color:var(--text);font-size:.82rem}
+.search-box:focus{outline:none;border-color:var(--accent)}
+.issue-group{background:var(--surface);border-radius:10px;margin-bottom:.6rem;border:1px solid var(--border);overflow:hidden}
+.igh{display:flex;justify-content:space-between;align-items:center;padding:.75rem 1.1rem;cursor:pointer;transition:background .2s}
+.igh:hover{background:var(--surface2)}
+.igh-left{display:flex;align-items:center;gap:.65rem}
+.igh-title{font-weight:600;font-size:.9rem}
+.igh-right{display:flex;align-items:center;gap:.65rem}
+.cbadge{border-radius:20px;padding:.12rem .6rem;font-size:.76rem;font-weight:700}
+.cbadge.fixed  {background:#064e3b;color:#34d399}
+.cbadge.flagged{background:#451a03;color:#fbbf24}
+.chevron{transition:transform .2s;color:var(--muted);font-size:.8rem}
+.issue-group.open .chevron{transform:rotate(180deg)}
+.issue-rows{display:none}
+.issue-group.open .issue-rows{display:block}
+.itbl{width:100%;border-collapse:collapse;font-size:.8rem}
+.itbl th{text-align:left;padding:.45rem .9rem;color:var(--muted);font-weight:500;border-top:1px solid var(--border);background:var(--card)}
+.itbl td{padding:.45rem .9rem;border-top:1px solid var(--card);color:#94a3b8}
+.itbl tr:hover td{background:var(--card)}
+.s-fixed  {color:var(--green);font-weight:700}
+.s-flagged{color:var(--yellow);font-weight:700}
+.hidden{display:none!important}
 
-    /* ── Issues accordion ── */
-    .issue-group { background: var(--surface); border-radius: 10px; margin-bottom: 0.75rem; border: 1px solid var(--border); overflow: hidden; }
-    .issue-group-header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 0.85rem 1.25rem; cursor: pointer; user-select: none;
-      transition: background 0.2s;
-    }
-    .issue-group-header:hover { background: var(--surface2); }
-    .igh-left { display: flex; align-items: center; gap: 0.75rem; }
-    .igh-icon { font-size: 1.1rem; }
-    .igh-title { font-weight: 600; font-size: 0.95rem; }
-    .igh-right { display: flex; align-items: center; gap: 0.75rem; }
-    .count-badge { border-radius: 20px; padding: 0.15rem 0.65rem; font-size: 0.78rem; font-weight: 700; }
-    .badge-fixed   { background: #064e3b; color: #34d399; }
-    .badge-flagged { background: #451a03; color: #fbbf24; }
-    .chevron { transition: transform 0.2s; color: var(--muted); }
-    .issue-group.open .chevron { transform: rotate(180deg); }
-    .issue-rows { display: none; }
-    .issue-group.open .issue-rows { display: block; }
-    .issue-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-    .issue-table th {
-      text-align: left; padding: 0.5rem 1rem; color: var(--muted);
-      font-weight: 500; border-top: 1px solid var(--border);
-      background: #0d1424;
-    }
-    .issue-table td { padding: 0.5rem 1rem; border-top: 1px solid #0f172a; color: #94a3b8; }
-    .issue-table tr:hover td { background: #0d1424; }
-    .status-fixed   { color: var(--green); font-weight: 700; }
-    .status-flagged { color: var(--yellow); font-weight: 700; }
+/* BEFORE/AFTER */
+.ba-wrap{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:700px){.ba-wrap{grid-template-columns:1fr}}
+.ba-panel h3{font-size:.85rem;font-weight:700;color:var(--muted);margin-bottom:.5rem;padding:.4rem .75rem;background:var(--card);border-radius:6px}
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+.dtbl{width:100%;border-collapse:collapse;font-size:.79rem}
+.dtbl th{background:var(--card);padding:.5rem .85rem;text-align:left;color:var(--accent2);font-weight:600;white-space:nowrap;border-bottom:2px solid var(--border)}
+.dtbl td{padding:.45rem .85rem;border-bottom:1px solid var(--card);color:#94a3b8;white-space:nowrap}
+.dtbl tr:last-child td{border-bottom:none}
+.dtbl tr:hover td{background:var(--surface2)}
+.ec{color:var(--border);font-style:italic}
 
-    /* ── Filter bar ── */
-    .filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .filter-btn {
-      padding: 0.3rem 0.9rem; border-radius: 20px; font-size: 0.78rem;
-      cursor: pointer; border: 1px solid var(--border); background: var(--surface);
-      color: var(--muted); transition: all 0.2s;
-    }
-    .filter-btn.active { border-color: var(--accent); color: var(--accent2); background: #1a2040; }
+/* HISTORY */
+.hist-list{display:flex;flex-direction:column;gap:.5rem}
+.hist-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.65rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.hist-info{font-size:.82rem}
+.hist-name{font-weight:600;color:var(--text)}
+.hist-meta{color:var(--muted);font-size:.76rem;margin-top:.15rem}
+.hist-actions{display:flex;gap:.4rem;flex-shrink:0}
 
-    /* ── Preview table ── */
-    .preview-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
-    .preview-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-    .preview-table th {
-      background: #0d1424; padding: 0.6rem 1rem; text-align: left;
-      color: var(--accent2); font-weight: 600; white-space: nowrap;
-      border-bottom: 2px solid var(--border);
-    }
-    .preview-table td { padding: 0.5rem 1rem; border-bottom: 1px solid #0f172a; color: #94a3b8; white-space: nowrap; }
-    .preview-table tr:last-child td { border-bottom: none; }
-    .preview-table tr:hover td { background: var(--surface2); }
-    .empty-cell { color: var(--border); font-style: italic; }
+/* DOWNLOADS */
+.downloads{display:flex;gap:.75rem;flex-wrap:wrap}
 
-    /* ── Downloads ── */
-    .downloads { display: flex; gap: 1rem; flex-wrap: wrap; }
-
-    /* ── Scrollbar ── */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-  </style>
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
 </head>
 <body>
 
+<div id="toast-container"></div>
+
 <header>
-  <div class="logo">🧹</div>
-  <div>
-    <h1>Data Quality Improvement System</h1>
-    <p>Upload your data file — get it cleaned, analysed, and ready to use</p>
+  <div class="header-left">
+    <div class="logo">🧹</div>
+    <div>
+      <h1>Data Quality Improvement System</h1>
+      <p>Upload · Detect · Clean · Report · Export</p>
+    </div>
   </div>
+  <button class="theme-btn" id="theme-btn">☀️ Light Mode</button>
 </header>
 
 <div class="container">
@@ -266,9 +220,9 @@
   <div class="steps" id="steps-bar">
     <div class="step"><div class="step-dot" id="s1">1</div><div class="step-label" id="sl1">Read</div></div>
     <div class="step-arrow">›</div>
-    <div class="step"><div class="step-dot" id="s2">2</div><div class="step-label" id="sl2">Detect Types</div></div>
+    <div class="step"><div class="step-dot" id="s2">2</div><div class="step-label" id="sl2">Detect</div></div>
     <div class="step-arrow">›</div>
-    <div class="step"><div class="step-dot" id="s3">3</div><div class="step-label" id="sl3">Check Quality</div></div>
+    <div class="step"><div class="step-dot" id="s3">3</div><div class="step-label" id="sl3">Check</div></div>
     <div class="step-arrow">›</div>
     <div class="step"><div class="step-dot" id="s4">4</div><div class="step-label" id="sl4">Clean</div></div>
     <div class="step-arrow">›</div>
@@ -277,20 +231,62 @@
     <div class="step"><div class="step-dot" id="s6">6</div><div class="step-label" id="sl6">Output</div></div>
   </div>
 
-  <!-- Upload -->
+  <!-- UPLOAD -->
   <div class="upload-card" id="drop-zone">
     <div class="upload-icon">📂</div>
-    <h2>Drop your file here or click to browse</h2>
-    <p>Supported formats: CSV &nbsp;·&nbsp; JSON &nbsp;·&nbsp; XML &nbsp;·&nbsp; YAML</p>
-    <input type="file" id="file-input" accept=".csv,.json,.xml,.yaml,.yml" />
+    <h2>Drop file(s) here or click to browse</h2>
+    <p>Supported: CSV · JSON · XML · YAML &nbsp;|&nbsp; Multiple files supported</p>
+    <input type="file" id="file-input" accept=".csv,.json,.xml,.yaml,.yml" multiple/>
     <div id="chosen-label"></div>
+    <div id="multi-list"></div>
+
+    <!-- Options toggle -->
+    <div class="options-toggle" id="opt-toggle" onclick="toggleOptions()">
+      ⚙️ Analysis Options <span id="opt-arrow">▼</span>
+    </div>
+    <div class="options-panel" id="options-panel">
+      <div class="opt-grid">
+        <div class="opt-group">
+          <label>Missing Value Strategy</label>
+          <select id="opt-missing">
+            <option value="flag">Flag only (don't fill)</option>
+            <option value="mean">Fill with Mean</option>
+            <option value="median">Fill with Median</option>
+            <option value="mode">Fill with Mode</option>
+            <option value="custom">Fill with Custom Value</option>
+          </select>
+        </div>
+        <div class="opt-group" id="custom-val-wrap" style="display:none">
+          <label>Custom Fill Value</label>
+          <input type="text" id="opt-custom-val" placeholder="e.g. 0 or N/A"/>
+        </div>
+        <div class="opt-group">
+          <label>Duplicate Detection</label>
+          <select id="opt-dup">
+            <option value="exact">Exact match</option>
+            <option value="fuzzy">Fuzzy match (~90% similar)</option>
+          </select>
+        </div>
+        <div class="opt-group">
+          <label>Output Format</label>
+          <select id="opt-format">
+            <option value="same">Same as input</option>
+            <option value="csv">CSV</option>
+            <option value="json">JSON</option>
+            <option value="xml">XML</option>
+            <option value="yaml">YAML</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
     <button class="btn btn-primary" id="upload-btn" disabled>🚀 &nbsp;Run Analysis</button>
   </div>
 
   <!-- Progress -->
   <div id="progress">
     <div class="progress-inner">
-      <div class="spinner"></div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-bar"></div></div>
       <p class="progress-text" id="progress-text">Reading file...</p>
     </div>
   </div>
@@ -298,14 +294,14 @@
   <!-- Error -->
   <div id="error-msg"></div>
 
-  <!-- Results -->
+  <!-- RESULTS -->
   <div id="results">
 
-    <!-- Summary stats -->
+    <!-- Summary -->
     <div class="section">
       <div class="section-header">
         <div class="section-title">Summary</div>
-        <span id="filename-tag" style="font-size:0.82rem;color:var(--muted);"></span>
+        <span id="filename-tag" style="font-size:.8rem;color:var(--muted)"></span>
       </div>
       <div class="stats-grid" id="stats-grid"></div>
     </div>
@@ -316,35 +312,60 @@
       <div class="chart-wrap" id="chart-wrap"></div>
     </div>
 
-    <!-- Tabs: types / issues / preview -->
+    <!-- Tabs -->
     <div class="section">
-      <div class="tabs">
+      <div class="tabs" id="tab-bar">
         <div class="tab active" data-tab="types">🏷️ Column Types</div>
         <div class="tab" data-tab="issues">⚠️ Issues</div>
-        <div class="tab" data-tab="preview">👁️ Data Preview</div>
+        <div class="tab" data-tab="before-after">🔀 Before / After</div>
+        <div class="tab" data-tab="history">🕑 History</div>
       </div>
 
       <!-- Column types -->
-      <div id="tab-types">
+      <div class="tab-content active" id="tab-types">
         <div class="col-grid" id="col-types-grid"></div>
+        <div class="rerun-bar" id="rerun-bar">
+          <button class="btn btn-outline" onclick="rerunWithOverrides()" style="margin-top:.75rem">
+            🔄 Re-analyse with type overrides
+          </button>
+        </div>
       </div>
 
       <!-- Issues -->
-      <div id="tab-issues" style="display:none">
-        <div class="filter-bar" id="filter-bar">
-          <div class="filter-btn active" data-filter="all">All</div>
-          <div class="filter-btn" data-filter="fixed">Fixed only</div>
-          <div class="filter-btn" data-filter="flagged">Flagged only</div>
+      <div class="tab-content" id="tab-issues">
+        <div class="issue-controls">
+          <div class="filter-bar">
+            <div class="filter-btn active" data-filter="all">All</div>
+            <div class="filter-btn" data-filter="fixed">✔ Fixed</div>
+            <div class="filter-btn" data-filter="flagged">⚠ Flagged</div>
+          </div>
+          <input class="search-box" id="issue-search" placeholder="Search column, value, note..."/>
         </div>
         <div id="issues-list"></div>
       </div>
 
-      <!-- Preview -->
-      <div id="tab-preview" style="display:none">
-        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.75rem;">Showing up to 10 rows of cleaned data.</p>
-        <div class="preview-wrap"><table class="preview-table" id="preview-table"></table></div>
+      <!-- Before / After -->
+      <div class="tab-content" id="tab-before-after">
+        <div class="ba-wrap">
+          <div class="ba-panel">
+            <h3>⬅ Original Data (first 10 rows)</h3>
+            <div class="tbl-wrap"><table class="dtbl" id="orig-table"></table></div>
+          </div>
+          <div class="ba-panel">
+            <h3>✅ Cleaned Data (first 10 rows)</h3>
+            <div class="tbl-wrap"><table class="dtbl" id="clean-table"></table></div>
+          </div>
+        </div>
       </div>
-    </div>
+
+      <!-- History -->
+      <div class="tab-content" id="tab-history">
+        <div id="hist-list" class="hist-list">
+          <p style="color:var(--muted);font-size:.85rem">No history yet — runs will appear here.</p>
+        </div>
+      </div>
+
+    </div><!-- /tabs -->
 
     <!-- Downloads -->
     <div class="section">
@@ -352,8 +373,7 @@
       <div class="downloads" id="downloads"></div>
     </div>
 
-    <!-- Run again -->
-    <div style="text-align:center;margin-bottom:3rem;">
+    <div style="text-align:center;margin-bottom:3rem">
       <button class="btn btn-outline" id="reset-btn">↩ &nbsp;Analyse another file</button>
     </div>
 
@@ -361,288 +381,336 @@
 </div><!-- /container -->
 
 <script>
-const dropZone   = document.getElementById('drop-zone');
-const fileInput  = document.getElementById('file-input');
-const uploadBtn  = document.getElementById('upload-btn');
-const chosenLbl  = document.getElementById('chosen-label');
-const progressEl = document.getElementById('progress');
-const progressTxt= document.getElementById('progress-text');
-const resultsEl  = document.getElementById('results');
-const errorEl    = document.getElementById('error-msg');
-
-let selectedFile = null;
+// ── State ──
+let selectedFiles = [];
 let currentFilter = 'all';
-let currentData = null;
+let currentData   = null;
+let typeOverrides = {};
+let history       = [];
+let stepTimer;
 
-// ── File selection ──
-dropZone.addEventListener('click', (e) => { if (e.target !== uploadBtn) fileInput.click(); });
-fileInput.addEventListener('change', () => { if (fileInput.files[0]) selectFile(fileInput.files[0]); });
-dropZone.addEventListener('dragover',  (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('drag-over'));
-dropZone.addEventListener('drop', (e) => {
-  e.preventDefault(); dropZone.classList.remove('drag-over');
-  if (e.dataTransfer.files[0]) selectFile(e.dataTransfer.files[0]);
+// ── Theme ──
+const themeBtn = document.getElementById('theme-btn');
+themeBtn.addEventListener('click', () => {
+  const isDark = document.documentElement.dataset.theme === 'dark';
+  document.documentElement.dataset.theme = isDark ? 'light' : 'dark';
+  themeBtn.textContent = isDark ? '🌙 Dark Mode' : '☀️ Light Mode';
 });
 
-function selectFile(f) {
-  selectedFile = f;
-  chosenLbl.textContent = `${f.name}  (${(f.size/1024).toFixed(1)} KB)`;
+// ── Toast ──
+function toast(msg, type='info', duration=3500) {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.remove(), duration);
+}
+
+// ── File selection ──
+const dropZone  = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const uploadBtn = document.getElementById('upload-btn');
+const chosenLbl = document.getElementById('chosen-label');
+const multiList = document.getElementById('multi-list');
+
+dropZone.addEventListener('click', e => { if (e.target !== uploadBtn && !e.target.closest('.options-panel') && !e.target.closest('.options-toggle')) fileInput.click(); });
+fileInput.addEventListener('change', () => selectFiles(Array.from(fileInput.files)));
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); selectFiles(Array.from(e.dataTransfer.files)); });
+
+function selectFiles(files) {
+  selectedFiles = files.filter(f => /\.(csv|json|xml|yaml|yml)$/i.test(f.name));
+  if (!selectedFiles.length) { toast('No supported files selected', 'error'); return; }
+  if (selectedFiles.length === 1) {
+    chosenLbl.textContent = `${selectedFiles[0].name}  (${(selectedFiles[0].size/1024).toFixed(1)} KB)`;
+    multiList.innerHTML = '';
+  } else {
+    chosenLbl.textContent = `${selectedFiles.length} files selected`;
+    multiList.innerHTML = selectedFiles.map(f => `<div>${f.name} (${(f.size/1024).toFixed(1)} KB)</div>`).join('');
+  }
   uploadBtn.disabled = false;
 }
 
-// ── Upload & process ──
+// ── Options ──
+function toggleOptions() {
+  const panel = document.getElementById('options-panel');
+  panel.classList.toggle('open');
+  document.getElementById('opt-arrow').textContent = panel.classList.contains('open') ? '▲' : '▼';
+}
+document.getElementById('opt-missing').addEventListener('change', function() {
+  document.getElementById('custom-val-wrap').style.display = this.value === 'custom' ? 'block' : 'none';
+});
+
+// ── Upload ──
 uploadBtn.addEventListener('click', async () => {
-  if (!selectedFile) return;
+  if (!selectedFiles.length) return;
+  if (selectedFiles.length > 1) {
+    // Process multiple files sequentially
+    for (const f of selectedFiles) await processFile(f);
+  } else {
+    await processFile(selectedFiles[0]);
+  }
+});
+
+async function processFile(file) {
   showProgress();
   animateSteps();
 
   const form = new FormData();
-  form.append('file', selectedFile);
+  form.append('file', file);
+  form.append('missing_strategy',   document.getElementById('opt-missing').value);
+  form.append('missing_custom_value', document.getElementById('opt-custom-val').value);
+  form.append('duplicate_mode',     document.getElementById('opt-dup').value);
+  form.append('output_format',      document.getElementById('opt-format').value);
+  form.append('type_overrides',     JSON.stringify(typeOverrides));
 
   try {
-    const res = await fetch('/api/process', { method: 'POST', body: form });
+    const res = await fetch('/api/process', { method:'POST', body:form });
     let data;
-    try { data = await res.json(); } catch { throw new Error(`Server error (${res.status}). Is the server running?`); }
-    if (!res.ok) throw new Error(data.detail || `Server error ${res.status}`);
+    try { data = await res.json(); } catch { throw new Error(`Server error (${res.status})`); }
+    if (!res.ok) throw new Error(data.detail || `Error ${res.status}`);
     currentData = data;
+    typeOverrides = {};
     completeSteps();
+    addHistory(data);
     showResults(data);
-  } catch (err) {
+    toast(`Done! ${data.summary.auto_fixed} issues fixed, ${data.summary.flagged_for_review} flagged.`, 'success');
+  } catch(err) {
     resetSteps();
     showError(err.message);
+    toast(err.message, 'error');
   }
-});
+}
 
-// ── Steps animation ──
-let stepTimer;
+// ── Steps ──
+const stepLabels = ['Reading file...','Detecting types...','Checking quality...','Cleaning data...','Building report...','Writing output...'];
 function animateSteps() {
-  let step = 1;
-  const labels = ['Reading file...','Detecting column types...','Checking quality...','Cleaning data...','Building report...','Writing output...'];
-  setStep(1);
+  let step = 1; setStep(step);
+  const pct = [15,30,50,70,88,100];
+  setProgress(pct[0], stepLabels[0]);
   stepTimer = setInterval(() => {
     step++;
     if (step > 6) { clearInterval(stepTimer); return; }
-    setStep(step);
-    progressTxt.textContent = labels[step-1];
-  }, 600);
+    setStep(step); setProgress(pct[step-1], stepLabels[step-1]);
+  }, 500);
 }
 function setStep(n) {
-  for (let i = 1; i <= 6; i++) {
-    const dot = document.getElementById(`s${i}`);
-    const lbl = document.getElementById(`sl${i}`);
-    dot.className = 'step-dot' + (i < n ? ' done' : i === n ? ' active' : '');
-    lbl.className = 'step-label' + (i < n ? ' done' : i === n ? ' active' : '');
-    dot.textContent = i < n ? '✓' : i;
+  for (let i=1;i<=6;i++) {
+    const d=document.getElementById(`s${i}`), l=document.getElementById(`sl${i}`);
+    d.className='step-dot'+(i<n?' done':i===n?' active':'');
+    l.className='step-label'+(i<n?' done':i===n?' active':'');
+    d.textContent=i<n?'✓':i;
   }
 }
 function completeSteps() {
   clearInterval(stepTimer);
-  for (let i = 1; i <= 6; i++) {
-    document.getElementById(`s${i}`).className = 'step-dot done';
-    document.getElementById(`s${i}`).textContent = '✓';
-    document.getElementById(`sl${i}`).className = 'step-label done';
-  }
+  for(let i=1;i<=6;i++){document.getElementById(`s${i}`).className='step-dot done';document.getElementById(`s${i}`).textContent='✓';document.getElementById(`sl${i}`).className='step-label done';}
+  setProgress(100,'Done!');
 }
 function resetSteps() {
   clearInterval(stepTimer);
-  for (let i = 1; i <= 6; i++) {
-    document.getElementById(`s${i}`).className = 'step-dot';
-    document.getElementById(`s${i}`).textContent = i;
-    document.getElementById(`sl${i}`).className = 'step-label';
-  }
+  for(let i=1;i<=6;i++){document.getElementById(`s${i}`).className='step-dot';document.getElementById(`s${i}`).textContent=i;document.getElementById(`sl${i}`).className='step-label';}
+  setProgress(0,'');
+}
+function setProgress(pct, label) {
+  document.getElementById('prog-bar').style.width = pct+'%';
+  document.getElementById('progress-text').textContent = label;
 }
 
-// ── UI state helpers ──
+// ── UI state ──
 function showProgress() {
-  errorEl.style.display = 'none';
-  resultsEl.style.display = 'none';
-  dropZone.style.display = 'none';
-  progressEl.style.display = 'block';
-  progressTxt.textContent = 'Reading file...';
-  uploadBtn.disabled = true;
+  document.getElementById('error-msg').style.display='none';
+  document.getElementById('results').style.display='none';
+  document.getElementById('drop-zone').style.display='none';
+  document.getElementById('progress').style.display='block';
+  uploadBtn.disabled=true;
 }
 function showError(msg) {
-  clearInterval(stepTimer);
-  progressEl.style.display = 'none';
-  dropZone.style.display = 'block';
-  uploadBtn.disabled = false;
-  errorEl.style.display = 'block';
-  errorEl.innerHTML = `<strong>Error:</strong> ${msg}`;
+  document.getElementById('progress').style.display='none';
+  document.getElementById('drop-zone').style.display='block';
+  uploadBtn.disabled=false;
+  const el=document.getElementById('error-msg');
+  el.style.display='block';
+  el.innerHTML=`<strong>Error:</strong> ${msg}`;
 }
 
 // ── Render results ──
 function showResults(d) {
-  progressEl.style.display = 'none';
-  resultsEl.style.display = 'block';
+  document.getElementById('progress').style.display='none';
+  document.getElementById('results').style.display='block';
+  document.getElementById('filename-tag').textContent=d.filename;
 
-  document.getElementById('filename-tag').textContent = d.filename;
+  const s=d.summary;
+  const dupCount=(d.issues_by_type['duplicate_row']||[]).length;
 
-  const s = d.summary;
-
-  // Stats
-  document.getElementById('stats-grid').innerHTML = `
+  document.getElementById('stats-grid').innerHTML=`
     <div class="stat-card"><div class="stat-value">${s.total_rows_input}</div><div class="stat-label">Input Rows</div></div>
     <div class="stat-card"><div class="stat-value">${s.total_columns}</div><div class="stat-label">Columns</div></div>
     <div class="stat-card"><div class="stat-value">${s.total_issues_found}</div><div class="stat-label">Issues Found</div></div>
     <div class="stat-card"><div class="stat-value green">${s.auto_fixed}</div><div class="stat-label">Auto-Fixed</div></div>
     <div class="stat-card"><div class="stat-value yellow">${s.flagged_for_review}</div><div class="stat-label">Flagged</div></div>
-    <div class="stat-card"><div class="stat-value">${s.total_rows_input - countDuplicates(d)}</div><div class="stat-label">Output Rows</div></div>
+    <div class="stat-card"><div class="stat-value">${s.total_rows_input-dupCount}</div><div class="stat-label">Output Rows</div></div>
   `;
 
-  // Chart
   renderChart(d.issues_by_type);
-
-  // Column types
   renderColTypes(d.col_types);
+  renderIssues(d.issues_by_type, currentFilter, '');
+  renderTable('orig-table',  d.orig_preview);
+  renderTable('clean-table', d.clean_preview);
 
-  // Issues
-  renderIssues(d.issues_by_type, currentFilter);
-
-  // Preview
-  if (d.preview) renderPreview(d.preview);
-  else document.getElementById('preview-table').innerHTML = '<tr><td style="color:var(--muted);padding:1rem">Preview not available — please restart the server.</td></tr>';
-
-  // Downloads
-  document.getElementById('downloads').innerHTML = `
-    <a class="btn btn-green" href="${d.download_cleaned}" download>⬇ Download Cleaned File</a>
-    <a class="btn btn-outline" href="${d.download_report}" download>📄 Download Report (JSON)</a>
+  document.getElementById('downloads').innerHTML=`
+    <a class="btn btn-green"  href="${d.download_cleaned}" download>⬇ Cleaned File</a>
+    <a class="btn btn-outline" href="${d.download_report}"  download>📄 Report (JSON)</a>
+    <a class="btn btn-outline" href="${d.download_pdf}"     download>📑 Report (PDF)</a>
   `;
-}
-
-function countDuplicates(d) {
-  return (d.issues_by_type['duplicate_row'] || []).length;
 }
 
 // ── Chart ──
+const ICONS={bad_format:'📅',duplicate_row:'🔁',extra_whitespace:'·',inconsistent_casing:'Aa',missing_value:'❓',wrong_type:'⚡',invalid_value:'🚫',outlier:'📊',empty_column:'◻',bad_phone_format:'📞',bad_postcode:'📮'};
 function renderChart(byType) {
-  const wrap = document.getElementById('chart-wrap');
-  if (Object.keys(byType).length === 0) { wrap.innerHTML = '<p style="color:var(--green);text-align:center">No issues found!</p>'; return; }
-  const total = Object.values(byType).reduce((a,b) => a + b.length, 0);
-  const icons = { bad_format:'📅', duplicate_row:'🔁', extra_whitespace:'␣', inconsistent_casing:'Aa', missing_value:'❓', wrong_type:'⚡', invalid_value:'🚫' };
-  wrap.innerHTML = Object.entries(byType).map(([type, entries]) => {
-    const pct = Math.round(entries.length / total * 100);
-    const allFixed = entries.every(e => e.fixed);
-    const label = type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    return `
-      <div class="chart-row">
-        <div class="chart-label">${icons[type]||'•'} ${label}</div>
-        <div class="chart-bar-bg">
-          <div class="chart-bar-fill ${allFixed ? 'fixed' : 'flagged'}" style="width:${pct}%">
-            <span class="chart-count">${entries.length}</span>
-          </div>
-        </div>
-        <div class="chart-num">${pct}%</div>
-      </div>`;
+  const wrap=document.getElementById('chart-wrap');
+  if(!Object.keys(byType).length){wrap.innerHTML='<p style="color:var(--green);text-align:center;padding:1rem">No issues found!</p>';return;}
+  const total=Object.values(byType).reduce((a,b)=>a+b.length,0);
+  wrap.innerHTML=Object.entries(byType).map(([type,entries])=>{
+    const pct=Math.round(entries.length/total*100);
+    const allFixed=entries.every(e=>e.fixed);
+    const lbl=type.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    return`<div class="chart-row">
+      <div class="chart-label">${ICONS[type]||'•'} ${lbl}</div>
+      <div class="chart-bar-bg"><div class="chart-bar-fill ${allFixed?'fixed':'flagged'}" style="width:${pct}%"><span class="chart-count">${entries.length}</span></div></div>
+      <div class="chart-num">${pct}%</div></div>`;
   }).join('');
 }
 
 // ── Column types ──
+const TYPE_OPTIONS=['string','integer','float','boolean','date','email','phone'];
 function renderColTypes(colTypes) {
-  document.getElementById('col-types-grid').innerHTML = Object.entries(colTypes).map(([col, type]) =>
-    `<div class="col-pill">
-      <span class="col-name">${col}</span>
-      <span class="type-badge type-${type}">${type}</span>
-    </div>`
-  ).join('');
+  document.getElementById('col-types-grid').innerHTML=Object.entries(colTypes).map(([col,type])=>`
+    <div class="col-pill">
+      <span class="col-name" title="${col}">${col}</span>
+      <select class="type-select" data-col="${col}" onchange="overrideType('${col}',this.value)">
+        ${TYPE_OPTIONS.map(t=>`<option value="${t}"${t===type?' selected':''}>${t}</option>`).join('')}
+      </select>
+    </div>`).join('');
+  document.getElementById('rerun-bar').style.display='none';
+}
+function overrideType(col, val) {
+  typeOverrides[col]=val;
+  document.getElementById('rerun-bar').style.display='block';
+  toast(`Type override set: ${col} → ${val}`, 'info', 2000);
+}
+async function rerunWithOverrides() {
+  if(!selectedFiles.length){toast('Please upload the file again to re-run','error');return;}
+  await processFile(selectedFiles[0]);
 }
 
 // ── Issues ──
-function renderIssues(byType, filter) {
-  const list = document.getElementById('issues-list');
-  const icons = { bad_format:'📅', duplicate_row:'🔁', extra_whitespace:'  ', inconsistent_casing:'Aa', missing_value:'❓', wrong_type:'⚡', invalid_value:'🚫' };
-
-  if (Object.keys(byType).length === 0) {
-    list.innerHTML = '<p style="color:var(--green);padding:1rem 0">✅ No issues found — data looks clean!</p>';
-    return;
-  }
-
-  list.innerHTML = '';
-  for (const [type, entries] of Object.entries(byType)) {
-    const filtered = filter === 'fixed' ? entries.filter(e => e.fixed)
-                   : filter === 'flagged' ? entries.filter(e => !e.fixed)
-                   : entries;
-    if (filtered.length === 0) continue;
-
-    const label = type.replace(/_/g,'  ').replace(/\b\w/g, c => c.toUpperCase());
-    const allFixed = filtered.every(e => e.fixed);
-    const group = document.createElement('div');
-    group.className = 'issue-group';
-    group.innerHTML = `
-      <div class="issue-group-header">
-        <div class="igh-left">
-          <span class="igh-icon">${icons[type]||'•'}</span>
-          <span class="igh-title">${label}</span>
-        </div>
-        <div class="igh-right">
-          <span class="count-badge ${allFixed ? 'badge-fixed' : 'badge-flagged'}">${filtered.length}</span>
-          <span class="chevron">▼</span>
-        </div>
+function renderIssues(byType, filter, search) {
+  const list=document.getElementById('issues-list');
+  if(!Object.keys(byType).length){list.innerHTML='<p style="color:var(--green);padding:1rem 0">✅ No issues found!</p>';return;}
+  list.innerHTML='';
+  const sq=search.toLowerCase();
+  for(const [type,entries] of Object.entries(byType)){
+    let filtered=filter==='fixed'?entries.filter(e=>e.fixed):filter==='flagged'?entries.filter(e=>!e.fixed):entries;
+    if(sq) filtered=filtered.filter(e=>[e.column,e.original_value,e.note].some(v=>String(v||'').toLowerCase().includes(sq)));
+    if(!filtered.length) continue;
+    const lbl=type.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    const allFixed=filtered.every(e=>e.fixed);
+    const g=document.createElement('div');
+    g.className='issue-group';
+    g.innerHTML=`
+      <div class="igh">
+        <div class="igh-left"><span>${ICONS[type]||'•'}</span><span class="igh-title">${lbl}</span></div>
+        <div class="igh-right"><span class="cbadge ${allFixed?'fixed':'flagged'}">${filtered.length}</span><span class="chevron">▼</span></div>
       </div>
       <div class="issue-rows">
-        <table class="issue-table">
-          <thead><tr><th>Status</th><th>Column</th><th>Row</th><th>Original Value</th><th>New Value</th><th>Note</th></tr></thead>
-          <tbody>
-            ${filtered.map(e => `
-              <tr>
-                <td class="${e.fixed ? 'status-fixed' : 'status-flagged'}">${e.fixed ? '✔ Fixed' : '⚠ Flagged'}</td>
-                <td>${e.column}</td>
-                <td>${e.row === -1 ? '—' : e.row}</td>
-                <td>${e.original_value ?? '<em style="color:var(--muted)">null</em>'}</td>
-                <td>${e.new_value ?? '<em style="color:var(--muted)">null</em>'}</td>
-                <td style="color:var(--muted)">${e.note}</td>
-              </tr>`).join('')}
+        <table class="itbl">
+          <thead><tr><th>Status</th><th>Column</th><th>Row</th><th>Original</th><th>New Value</th><th>Note</th></tr></thead>
+          <tbody>${filtered.map(e=>`
+            <tr>
+              <td class="${e.fixed?'s-fixed':'s-flagged'}">${e.fixed?'✔ Fixed':'⚠ Flagged'}</td>
+              <td>${e.column}</td><td>${e.row===-1?'—':e.row}</td>
+              <td>${e.original_value??'<em style="color:var(--muted)">null</em>'}</td>
+              <td>${e.new_value??'<em style="color:var(--muted)">null</em>'}</td>
+              <td style="color:var(--muted)">${e.note}</td>
+            </tr>`).join('')}
           </tbody>
         </table>
       </div>`;
-    group.querySelector('.issue-group-header').addEventListener('click', () => group.classList.toggle('open'));
-    list.appendChild(group);
+    g.querySelector('.igh').addEventListener('click',()=>g.classList.toggle('open'));
+    list.appendChild(g);
   }
 }
 
-// ── Preview ──
-function renderPreview(preview) {
-  const { columns, rows } = preview;
-  const thead = `<thead><tr>${columns.map(c => `<th>${c}</th>`).join('')}</tr></thead>`;
-  const tbody = `<tbody>${rows.map(row =>
-    `<tr>${columns.map(c => {
-      const v = row[c];
-      return `<td>${v === '' || v === null || v === undefined ? '<span class="empty-cell">empty</span>' : v}</td>`;
-    }).join('')}</tr>`
-  ).join('')}</tbody>`;
-  document.getElementById('preview-table').innerHTML = thead + tbody;
+// ── Search & filter ──
+document.getElementById('issue-search').addEventListener('input', function() {
+  if(currentData) renderIssues(currentData.issues_by_type, currentFilter, this.value);
+});
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter=btn.dataset.filter;
+    if(currentData) renderIssues(currentData.issues_by_type, currentFilter, document.getElementById('issue-search').value);
+  });
+});
+
+// ── Data table ──
+function renderTable(id, preview) {
+  if(!preview){document.getElementById(id).innerHTML='<tr><td style="color:var(--muted);padding:1rem">No data available</td></tr>';return;}
+  const {columns,rows}=preview;
+  const thead=`<thead><tr>${columns.map(c=>`<th>${c}</th>`).join('')}</tr></thead>`;
+  const tbody=`<tbody>${rows.map(row=>`<tr>${columns.map(c=>{const v=row[c];return`<td>${v===''||v==null?'<span class="ec">empty</span>':v}</td>`;}).join('')}</tr>`).join('')}</tbody>`;
+  document.getElementById(id).innerHTML=thead+tbody;
 }
 
 // ── Tabs ──
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     tab.classList.add('active');
-    ['types','issues','preview'].forEach(id => {
-      document.getElementById(`tab-${id}`).style.display = tab.dataset.tab === id ? 'block' : 'none';
-    });
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    document.getElementById('tab-'+tab.dataset.tab).classList.add('active');
   });
 });
 
-// ── Filter ──
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentFilter = btn.dataset.filter;
-    if (currentData) renderIssues(currentData.issues_by_type, currentFilter);
+// ── History ──
+function addHistory(data) {
+  history.unshift({
+    filename: data.filename,
+    time: new Date().toLocaleTimeString(),
+    summary: data.summary,
+    download_cleaned: data.download_cleaned,
+    download_report:  data.download_report,
+    download_pdf:     data.download_pdf,
   });
-});
+  renderHistory();
+}
+function renderHistory() {
+  const el=document.getElementById('hist-list');
+  if(!history.length){el.innerHTML='<p style="color:var(--muted);font-size:.85rem">No history yet.</p>';return;}
+  el.innerHTML=history.map((h,i)=>`
+    <div class="hist-item">
+      <div class="hist-info">
+        <div class="hist-name">${h.filename}</div>
+        <div class="hist-meta">${h.time} &nbsp;·&nbsp; ${h.summary.total_issues_found} issues &nbsp;·&nbsp; ${h.summary.auto_fixed} fixed</div>
+      </div>
+      <div class="hist-actions">
+        <a class="btn btn-green btn-sm" href="${h.download_cleaned}" download style="padding:.35rem .8rem;font-size:.76rem">⬇ File</a>
+        <a class="btn btn-outline btn-sm" href="${h.download_pdf}" download style="padding:.35rem .8rem;font-size:.76rem">📑 PDF</a>
+      </div>
+    </div>`).join('');
+}
 
 // ── Reset ──
-document.getElementById('reset-btn').addEventListener('click', () => {
-  resultsEl.style.display = 'none';
-  dropZone.style.display = 'block';
-  fileInput.value = '';
-  chosenLbl.textContent = '';
-  uploadBtn.disabled = true;
-  selectedFile = null;
-  currentData = null;
+document.getElementById('reset-btn').addEventListener('click',()=>{
+  document.getElementById('results').style.display='none';
+  document.getElementById('drop-zone').style.display='block';
+  fileInput.value=''; chosenLbl.textContent=''; multiList.innerHTML='';
+  uploadBtn.disabled=true; selectedFiles=[]; currentData=null; typeOverrides={};
   resetSteps();
+  document.getElementById('error-msg').style.display='none';
 });
 </script>
 </body>

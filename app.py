@@ -1,29 +1,33 @@
 """
 app.py — FastAPI web server for the Data Quality Improvement System.
 """
-import io
-import os
-import sys
-import uuid
-import tempfile
+import io, os, sys, uuid, json, math, tempfile
 from pathlib import Path
+from typing import Optional
 
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import JSONResponse, FileResponse, HTMLResponse, Response
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi.responses import FileResponse, HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-# Make sure src/ modules are importable
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from reader   import read_file
-from detector import detect_types
-from checker  import check
-from cleaner  import clean
-from reporter import build_report, report_to_json
-import json, math
+from reader       import read_file
+from detector     import detect_types
+from checker      import check
+from cleaner      import clean
+from reporter     import build_report, report_to_json
+from writer       import write_output
+from pdf_exporter import generate_pdf
+
+ALLOWED_EXTENSIONS = {".csv", ".json", ".xml", ".yaml", ".yml"}
+TEMP_DIR = Path(tempfile.gettempdir()) / "dqis"
+TEMP_DIR.mkdir(exist_ok=True)
+
+app = FastAPI(title="Data Quality Improvement System", version="2.0.0")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 def _sanitize(obj):
-    """Recursively replace NaN/Inf floats with None so JSON stays valid."""
     if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
         return None
     if isinstance(obj, dict):
@@ -31,73 +35,89 @@ def _sanitize(obj):
     if isinstance(obj, list):
         return [_sanitize(v) for v in obj]
     return obj
-from writer   import write_output
-
-ALLOWED_EXTENSIONS = {".csv", ".json", ".xml", ".yaml", ".yml"}
-TEMP_DIR = Path(tempfile.gettempdir()) / "dqis"
-TEMP_DIR.mkdir(exist_ok=True)
-
-app = FastAPI(title="Data Quality Improvement System", version="1.0.0")
-
-# Serve static frontend
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
-    html_path = Path("static/index.html")
-    return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
+    return HTMLResponse(content=Path("static/index.html").read_text(encoding="utf-8"))
 
 
 @app.post("/api/process")
-async def process_file(file: UploadFile = File(...)):
-    """
-    Upload a data file, run the full quality pipeline, return report + download links.
-    """
+async def process_file(
+    file: UploadFile = File(...),
+    missing_strategy: str = Form("flag"),
+    missing_custom_value: str = Form(""),
+    duplicate_mode: str = Form("exact"),
+    output_format: str = Form("same"),
+    type_overrides: str = Form("{}"),   # JSON string: {"col": "type", ...}
+):
     ext = Path(file.filename).suffix.lower()
     if ext not in ALLOWED_EXTENSIONS:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unsupported file type '{ext}'. Allowed: {', '.join(ALLOWED_EXTENSIONS)}"
-        )
+        raise HTTPException(400, detail=f"Unsupported type '{ext}'. Allowed: {', '.join(ALLOWED_EXTENSIONS)}")
 
-    # Save upload to a temp file
-    job_id = uuid.uuid4().hex
+    job_id  = uuid.uuid4().hex
     job_dir = TEMP_DIR / job_id
     job_dir.mkdir()
     input_path = job_dir / file.filename
+    input_path.write_bytes(await file.read())
 
-    content = await file.read()
-    input_path.write_bytes(content)
+    try:
+        overrides = json.loads(type_overrides) if type_overrides else {}
+    except Exception:
+        overrides = {}
 
     try:
         df = read_file(str(input_path))
         total_rows, total_cols = df.shape
 
+        # Original preview (before cleaning)
+        orig_preview = {
+            "columns": list(df.columns),
+            "rows": df.head(10).fillna("").to_dict(orient="records"),
+        }
+
         col_types = detect_types(df)
-        issues    = check(df, col_types)
-        cleaned_df, change_records = clean(df, issues, col_types)
-        report    = build_report(change_records, total_rows, total_cols)
+        col_types.update(overrides)   # apply any manual overrides
+
+        issues = check(df, col_types, duplicate_mode=duplicate_mode)
+
+        cleaned_df, change_records = clean(
+            df, issues, col_types,
+            missing_strategy=missing_strategy,
+            missing_custom_value=missing_custom_value,
+            duplicate_mode=duplicate_mode,
+        )
+
+        report = build_report(change_records, total_rows, total_cols)
+
+        # Resolve output extension
+        out_ext = ext if output_format == "same" else f".{output_format}"
+        out_filename = Path(file.filename).stem + out_ext
+        out_input_path = str(job_dir / out_filename)   # fake input path to drive ext detection
 
         output_dir = str(job_dir / "output")
-        cleaned_path, _, _ = write_output(cleaned_df, report, str(input_path), output_dir)
+        write_output(cleaned_df, report, out_input_path, output_dir)
+
+        # Cleaned preview
+        clean_preview = {
+            "columns": list(cleaned_df.columns),
+            "rows": cleaned_df.head(10).fillna("").to_dict(orient="records"),
+        }
 
     except Exception as e:
-        raise HTTPException(status_code=422, detail=str(e))
-
-    # Build data preview (first 10 rows of cleaned data)
-    preview_rows = cleaned_df.head(10).fillna("").to_dict(orient="records")
-    preview_cols = list(cleaned_df.columns)
+        raise HTTPException(422, detail=str(e))
 
     payload = _sanitize({
-        "job_id": job_id,
-        "filename": file.filename,
-        "summary": report["summary"],
-        "issues_by_type": report["issues_by_type"],
-        "col_types": col_types,
-        "preview": {"columns": preview_cols, "rows": preview_rows},
+        "job_id":           job_id,
+        "filename":         file.filename,
+        "summary":          report["summary"],
+        "issues_by_type":   report["issues_by_type"],
+        "col_types":        col_types,
+        "orig_preview":     orig_preview,
+        "clean_preview":    clean_preview,
         "download_cleaned": f"/api/download/{job_id}/cleaned",
         "download_report":  f"/api/download/{job_id}/report",
+        "download_pdf":     f"/api/download/{job_id}/pdf",
     })
     return Response(content=json.dumps(payload, indent=2), media_type="application/json")
 
@@ -106,11 +126,10 @@ async def process_file(file: UploadFile = File(...)):
 async def download_cleaned(job_id: str):
     job_dir = TEMP_DIR / job_id
     if not job_dir.exists():
-        raise HTTPException(status_code=404, detail="Job not found.")
-    output_dir = job_dir / "output"
-    files = list(output_dir.glob("*_cleaned.*"))
+        raise HTTPException(404, detail="Job not found.")
+    files = list((job_dir / "output").glob("*_cleaned.*"))
     if not files:
-        raise HTTPException(status_code=404, detail="Cleaned file not found.")
+        raise HTTPException(404, detail="Cleaned file not found.")
     return FileResponse(str(files[0]), filename=files[0].name)
 
 
@@ -118,9 +137,24 @@ async def download_cleaned(job_id: str):
 async def download_report(job_id: str):
     job_dir = TEMP_DIR / job_id
     if not job_dir.exists():
-        raise HTTPException(status_code=404, detail="Job not found.")
-    output_dir = job_dir / "output"
-    files = list(output_dir.glob("*_report.json"))
+        raise HTTPException(404, detail="Job not found.")
+    files = list((job_dir / "output").glob("*_report.json"))
     if not files:
-        raise HTTPException(status_code=404, detail="Report file not found.")
+        raise HTTPException(404, detail="Report not found.")
     return FileResponse(str(files[0]), filename=files[0].name, media_type="application/json")
+
+
+@app.get("/api/download/{job_id}/pdf")
+async def download_pdf(job_id: str):
+    job_dir = TEMP_DIR / job_id
+    if not job_dir.exists():
+        raise HTTPException(404, detail="Job not found.")
+    report_files = list((job_dir / "output").glob("*_report.json"))
+    if not report_files:
+        raise HTTPException(404, detail="Report not found.")
+    report = json.loads(report_files[0].read_text(encoding="utf-8"))
+    # reconstruct filename from path
+    filename = report_files[0].name.replace("_report.json", "")
+    pdf_bytes = generate_pdf(report, filename)
+    return Response(content=bytes(pdf_bytes), media_type="application/pdf",
+                    headers={"Content-Disposition": f"attachment; filename={filename}_report.pdf"})

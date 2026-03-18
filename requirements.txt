@@ -7,3 +7,5 @@ pyyaml==6.0.2
 lxml==5.3.0
 openpyxl==3.1.5
 sqlalchemy==2.0.36
+fpdf2==2.8.1
+rapidfuzz==3.10.1
